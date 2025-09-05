@@ -1,0 +1,8 @@
+GameProject {
+ ID "ImpactGrenades"
+ GUID "664ABB3772EC30D3"
+ TITLE "Impact Grenades"
+ Dependencies {
+  "66456BC3344EE7BA" "58D0FB3206B6F859"
+ }
+}
