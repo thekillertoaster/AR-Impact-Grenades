@@ -1,0 +1,18 @@
+GenericEntity : "{354807395DEDEF63}Prefabs/Weapons/Grenades/Grenade_M67_Impact.et" {
+ ID "E8F00BF730225B00"
+ components {
+  InventoryItemComponent "{51FAA3E3CF6F087A}" {
+   Attributes SCR_ItemAttributeCollection "{51FAA3E3C2D19BD4}" {
+    ItemDisplayName WeaponUIInfo "{56CA88CA3C5E4779}" {
+     Name "M67 Thor"
+    }
+   }
+  }
+  TKT_Thor_ImpactDetonateComponent "{6642EDA4C5AD53BE}" {
+   m_lightningPrefab "{A8FFCD3F3697D77F}Prefabs/Editor/Lightning/LightningStrike.et"
+  }
+ }
+ coords 2041.546 37.663 2043.178
+ angleX 1.157
+ angleY 43.084
+}

@@ -1,0 +1,24 @@
+GenericEntity : "{354807395DEDEF63}Prefabs/Weapons/Grenades/Grenade_M67_Impact.et" {
+ ID "E8F00BF730225B00"
+ components {
+  TimerTriggerComponent "{5184D79CBEBEF784}" {
+   Enabled 0
+  }
+  InventoryItemComponent "{51FAA3E3CF6F087A}" {
+   Attributes SCR_ItemAttributeCollection "{51FAA3E3C2D19BD4}" {
+    ItemDisplayName WeaponUIInfo "{56CA88CA3C5E4779}" {
+     Name "M67 Vehicle Grenade - Heli"
+    }
+   }
+  }
+  TKT_VehicleSpawn_ImpactDetonateComponent "{6642EDA4C5AD53BE}" {
+   m_armingDelay 0
+   m_minImpactSpeed 0.15
+   m_vehiclePrefab "{70BAEEFC2D3FEE64}Prefabs/Vehicles/Helicopters/UH1H/UH1H.et"
+  }
+ }
+ coords 2026.749 10.83 1861.074
+ angleX 1.955
+ angleY 43.193
+ angleZ 1.834
+}

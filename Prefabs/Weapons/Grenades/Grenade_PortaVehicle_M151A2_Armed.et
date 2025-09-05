@@ -1,0 +1,23 @@
+GenericEntity : "{354807395DEDEF63}Prefabs/Weapons/Grenades/Grenade_M67_Impact.et" {
+ ID "E8F00BF730225B00"
+ components {
+  TimerTriggerComponent "{5184D79CBEBEF784}" {
+   Enabled 0
+  }
+  InventoryItemComponent "{51FAA3E3CF6F087A}" {
+   Attributes SCR_ItemAttributeCollection "{51FAA3E3C2D19BD4}" {
+    ItemDisplayName WeaponUIInfo "{56CA88CA3C5E4779}" {
+     Name "M67 Vehicle Grenade"
+    }
+   }
+  }
+  TKT_VehicleSpawn_ImpactDetonateComponent "{6642EDA4C5AD53BE}" {
+   m_armingDelay 0
+   m_minImpactSpeed 0.15
+   m_vehiclePrefab "{F6B23D17D5067C11}Prefabs/Vehicles/Wheeled/M151A2/M151A2_M2HB.et"
+  }
+ }
+ coords 2026.848 10.825 1860.987
+ angleX 1.955
+ angleY 43.193
+}
