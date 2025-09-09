@@ -23,7 +23,7 @@ class TKT_ImpactDetonateComponent : ScriptComponent
 	{
 		super.OnPostInit(owner);
 
-		m_rpl    = RplComponent.Cast(owner.FindComponent(RplComponent));
+		m_rpl    = TC_Replication.EntRpl(owner);
 		m_phys   = owner.GetPhysics();
 		m_trigger = BaseTriggerComponent.Cast(owner.FindComponent(BaseTriggerComponent));
 
@@ -108,7 +108,9 @@ class TKT_ImpactDetonateComponent : ScriptComponent
 		
 		m_done = true;
 		ClearEventMask(owner, EntityEvent.CONTACT | EntityEvent.FRAME);
+		
 		Print("[ImpactFuze] Detonating via OnUserTrigger()");
+		
 		m_trigger.OnUserTrigger(owner); // fire the default explosion pipeline
 	}
 }
