@@ -1,0 +1,11 @@
+GenericEntity {
+ ID "6651095BB9125BE6"
+ components {
+  MeshObject "{6651095B4AE6249E}" {
+   Object "{B5E0FA6FA5FD91D4}Assets/Editor/EffectModule/Editor_Effect_Arrow.xob"
+  }
+  RplComponent "{6651095BBD9F837C}" {
+  }
+ }
+ coords 2025.071 10.737 1860.03
+}

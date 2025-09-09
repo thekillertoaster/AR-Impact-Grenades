@@ -1,0 +1,6 @@
+MatPBRBasic {
+ DiffuseIBL 0.337 0.337 0.337 1
+ SpecularIBL 0.337 0.337 0.337 1
+ Diffuse 0.337 0.337 0.337 1
+ Specular 0.337 0.337 0.337 1
+}

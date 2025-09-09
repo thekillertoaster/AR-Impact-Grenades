@@ -1,0 +1,11 @@
+GenericEntity {
+ ID "66510956B0726939"
+ components {
+  MeshObject "{66510956A631321B}" {
+   Object "{B27D6CBDAA01420F}Assets/Drones/Test Drone/drone thing proxy.xob"
+  }
+  RplComponent "{66510956AB64839A}" {
+  }
+ }
+ coords 2020.804 10.769 1863.19
+}
