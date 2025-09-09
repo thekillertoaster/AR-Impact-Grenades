@@ -1,0 +1,31 @@
+EffectDef {
+ Version 2
+ Emitters {
+  EmitterDef Emitter_01 {
+   ConeAngle 360 0 25
+   MaxNum 1000
+   BirthRate 50
+   Offset -4 0 0
+   Angles 0 0 45
+   Material "{218B7A2C7C8ACD90}system/wbdata/ParticleEditor/particleSpark.emat"
+   StretchMultiplier 1.05
+   SizeMultiplier 0.05
+   BillboardingType None
+   VelAngle 1
+   Velocity 7
+   VelocityRND 5
+   AirResistance 1
+   AirResistanceRND 0.1
+   WindInfluence 1
+   GravityMultiply 1
+   EnableCollisions 1
+   NormalRestitution 0.5
+   TagentialRestitution 0.765
+   Friction 0.1
+   Spring 0
+   Lifetime 2.5
+   LifetimeShortening 0.5
+   MaxLV 8.706
+  }
+ }
+}
