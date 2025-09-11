@@ -16,6 +16,9 @@ class TKT_OrbitingDroneSpawnerComponent2 : ScriptComponent
 
 	[Attribute(defvalue: "1", desc: "Counter-Clockwise (1) or Clockwise (0)")]
 	protected bool m_counterClockwise;
+	
+	[Attribute(defvalue: "1", desc: "Second orbit CCW (1) or CW (0)")]
+	protected bool m_counterClockwiseB;
 
 	[Attribute(defvalue: "1.0", desc: "Banking multiplier (0=flat, 1=realistic-ish)")]
 	protected float m_bankScale;
@@ -39,39 +42,98 @@ class TKT_OrbitingDroneSpawnerComponent2 : ScriptComponent
 	protected bool    m_wasSpawned;
 
 	protected const float G = 9.81;
-	protected const float DEG2RAD = 0.017453292519943295; // pi/180
 	
 	protected void BuildDemoPath()
 	{
+		// centers
 		vector A = GetOwner().GetOrigin();
-		vector B = A + Vector(60, 0, 40);
+		vector B = A + Vector(0, 30, 100);
 	
-		// Orbit A for 3 loops
+		float rA = m_radius;
+		float rB = m_radius;     // change if the second orbit is a different size
+		float hA = m_height;
+		float hB = m_height;     // change if second orbit altitude differs
+	
+		vector A3 = A + Vector(0, hA, 0);
+		vector B3 = B + Vector(0, hB, 0);
+	
+		// compute both mirror tangents
+		vector p1L, p2L, dirL, p1R, p2R, dirR;
+		bool okL = TKT_ComputeCircleTangent(A3, rA, m_counterClockwise,
+		                                    B3, rB, m_counterClockwiseB,
+		                                    /*chooseUpper*/ true,
+		                                    p1L, p2L, dirL);
+		bool okR = TKT_ComputeCircleTangent(A3, rA, m_counterClockwise,
+		                                    B3, rB, m_counterClockwiseB,
+		                                    /*chooseUpper*/ false,
+		                                    p1R, p2R, dirR);
+	
+		if (!okL && !okR) { Print("[Path] No valid tangents"); return; }
+	
+		// score alignment at BOTH circles
+		float sAL = -2.0, sAR = -2.0, sBL = -2.0, sBR = -2.0;
+		if (okL) sAL = TKT_ScoreTangentAlign(A3, m_counterClockwise,  p1L, dirL);
+		if (okR) sAR = TKT_ScoreTangentAlign(A3, m_counterClockwise,  p1R, dirR);
+		if (okL) sBL = TKT_ScoreTangentAlign(B3, m_counterClockwiseB, p2L, dirL);
+		if (okR) sBR = TKT_ScoreTangentAlign(B3, m_counterClockwiseB, p2R, dirR);
+		
+		// lengths for tie-break
+		float lenL; if (okL) lenL =  (p2L - p1L).Length(); else lenL = 1e9;
+		float lenR; if (okR) lenR =  (p2R - p1R).Length(); else lenR = 1e9;
+		
+		// pick tangent: prefer both ends aligned (>=0), else higher min alignment, else shorter
+		float qL = sAL; if (sBL < qL) qL = sBL;
+		float qR = sAR; if (sBR < qR) qR = sBR;
+		
+		bool useL;
+		if (okL && !okR) useL = true;
+		else if (!okL && okR) useL = false;
+		else {
+			if (qL >= 0.0 && qR < 0.0) useL = true;
+			else if (qR >= 0.0 && qL < 0.0) useL = false;
+			else {
+				if (qL > qR) useL = true;
+				else if (qR > qL) useL = false;
+				else { if (lenL <= lenR) useL = true; else useL = false; }
+			}
+		}
+		
+		vector Pexit, Penter, legDir;
+		if (useL) { Pexit = p1L; Penter = p2L; legDir = dirL; }
+		else        { Pexit = p1R; Penter = p2R; legDir = dirR; }
+		
+		// ORBIT A — start exactly at Pexit so we leave cleanly into the leg
 		ref TKT_OrbitSegment orbA = new TKT_OrbitSegment();
-		orbA.m_center = A; orbA.m_height = m_height; orbA.m_radius = m_radius;
-		orbA.m_speed = m_speed; orbA.m_ccw = m_counterClockwise; orbA.m_yawDeg = m_yawOffsetDeg;
-		orbA.m_loops = 1.0;
+		orbA.m_center = A; orbA.m_height = hA; orbA.m_radius = rA;
+		orbA.m_speed = m_speed; orbA.m_ccw = m_counterClockwise; orbA.m_yawDeg = 0.0;
+		orbA.m_loops = 2.0;
+		orbA.SetStartAtPoint(Pexit);
 		m_path.Insert(orbA);
 	
-		// *** Make the line fly at orbit height ***
-		vector A3D = A + Vector(0, m_height, 0);
-		vector B3D = B + Vector(0, m_height, 0);
-		vector A_edge = A3D + Vector(m_radius, 0, 0);
-		vector B_edge = B3D + Vector(m_radius, 0, 0);
-	
+		// STRAIGHT LEG (swap for a Hermite segment later if you want curvature easing)
 		ref TKT_LineSegment leg = new TKT_LineSegment();
-		leg.m_a = A_edge;
-		leg.m_b = B_edge;
-		leg.m_speed = m_speed;
-		leg.Init();
+		leg.m_a = Pexit; leg.m_b = Penter; leg.m_speed = m_speed; leg.Init();
 		m_path.Insert(leg);
 	
-		// Orbit B forever
+		// ORBIT B — start at Penter so the handoff is seamless
 		ref TKT_OrbitSegment orbB = new TKT_OrbitSegment();
-		orbB.m_center = B; orbB.m_height = m_height; orbB.m_radius = m_radius;
-		orbB.m_speed = m_speed; orbB.m_ccw = m_counterClockwise; orbB.m_yawDeg = m_yawOffsetDeg;
+		orbB.m_center = B; orbB.m_height = hB; orbB.m_radius = rB;
+		orbB.m_speed = m_speed; orbB.m_ccw = m_counterClockwiseB; orbB.m_yawDeg = 0.0;
 		orbB.m_loops = 0;
+		orbB.SetStartAtPoint(Penter);
 		m_path.Insert(orbB);
+	
+		// optional debug markers
+		if (m_debugDraw) {
+			const int flags = ShapeFlags.ONCE | ShapeFlags.NOZBUFFER;
+			Shape.CreateSphere(0xFF00FFFF, flags, Pexit,  0.35);
+			Shape.CreateSphere(0xFFFF00FF, flags, Penter, 0.35);
+			
+			TKT_DrawLine(A3, Pexit,  0xFFAA8800);
+			TKT_DrawLine(B3, Penter, 0xFFAA8800);
+			
+			TKT_DrawLine(Pexit, Penter, 0xFF00FF00);
+		}
 	}
 	
 	protected void EnsureCurrentSegment()
@@ -125,8 +187,8 @@ class TKT_OrbitingDroneSpawnerComponent2 : ScriptComponent
 		
 		// set transform from segment output
 		// (re-orthonormalize so culling never glitches)
-		vector right = Normalize(Cross(up, fwd));
-		up = Normalize(Cross(fwd, right));
+		vector right = TKT_Normalize(TKT_Cross(up, fwd));
+		up = TKT_Normalize(TKT_Cross(fwd, right));
 		
 		vector tr[4];
 		tr[0] = right; tr[1] = up; tr[2] = fwd; tr[3] = pos;
@@ -153,17 +215,10 @@ class TKT_OrbitingDroneSpawnerComponent2 : ScriptComponent
 		
 		// if this segment ended, move to next next frame
 		if (!keepGoing) {
-			// hand off the exact end position to the next segment if it's a line
-			if (m_path.Count() > 0) {
-				TKT_LineSegment nextLine = TKT_LineSegment.Cast(m_path[0]);
-				if (nextLine) { nextLine.m_a = pos; nextLine.Init(); }
-			}
 			m_curr = null;
 		}
 		
 		m_prevPos = pos;
-		
-		if ((int)(m_segTime*10)%10==0) PrintFormat("[Drone] t=%2 pos=%1", m_segTime, pos);
 	}
 
 	protected void SpawnDrone()
@@ -194,28 +249,6 @@ class TKT_OrbitingDroneSpawnerComponent2 : ScriptComponent
 		RplComponent rpl = RplComponent.Cast(GetOwner().FindComponent(RplComponent));
 		if (rpl) return rpl.IsMaster();
 		return Replication.IsServer();
-	}
-
-	protected static vector Normalize(vector v)
-	{
-		float len = v.Length();
-		if (len <= 0.0001) return "0 0 0";
-		return v / len;
-	}
-
-	protected static float Dot(vector a, vector b)
-	{
-		return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-	}
-
-	protected static vector Cross(vector a, vector b)
-	{
-		// (ay*bz - az*by, az*bx - ax*bz, ax*by - ay*bx)
-		return Vector(
-			a[1]*b[2] - a[2]*b[1],
-			a[2]*b[0] - a[0]*b[2],
-			a[0]*b[1] - a[1]*b[0]
-		);
 	}
 
 	protected void SafeDelete(IEntity ent)
